@@ -32,7 +32,7 @@ const SignUpScreen = (props: Props) => {
           Bạn đã có tài khoản chưa? &emsp;
           <Link href={"/signin"} asChild>
             <TouchableOpacity>
-              <Text style={styles.loginTxtSpan}>Đăng kí</Text>
+              <Text style={styles.loginTxtSpan}>Đăng nhập</Text>
             </TouchableOpacity>
           </Link>
         </Text>
