@@ -3,15 +3,15 @@ import React from 'react'
 
 type Props = {}
 
-const ExploreScreen = (props: Props) => {
+const ProfileScreen = (props: Props) => {
   return (
     <View style={styles.container}>
-      <Text>Explore Screen</Text>
+      <Text>Profile Screen</Text>
     </View>
   )
 }
 
-export default ExploreScreen
+export default ProfileScreen
 
 const styles = StyleSheet.create({
   container: {
