@@ -1,156 +1,201 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React from "react";
-import { ScrollView } from "react-native-gesture-handler";
-import Animated, { FadeInDown } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
-import { Colors } from "@/constants/Colors";
+import {Alert, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native"
+import React, {useState} from "react"
+import {ScrollView} from "react-native-gesture-handler"
+import Animated, {FadeInDown} from "react-native-reanimated"
+import {Ionicons} from "@expo/vector-icons"
+import {Colors} from "@/constants/Colors"
+import {useDispatch, useSelector} from "react-redux"
+import {decreaseQuantityProduct, increaseQuantityProduct, removeProduct} from "@/Reducer/cart"
+import axios from "axios"
+import {router} from "expo-router"
+import {addPayment} from "@/Reducer/payment"
+import {BoxEmpty} from "@/assets/icons/boxEmpty"
 
-type Props = {};
+type Props = {}
 
 const CartScreen = (props: Props) => {
+  const dispatch = useDispatch()
+  const productCart = useSelector((state: any) => state.cart.products)
+  const total = productCart.reduce((sum: number, item: any) => {
+    return sum + item.price * item.quantity
+  }, 0)
+
+  const handleDecreaseQty = (id: string) => {
+    dispatch(decreaseQuantityProduct(id))
+  }
+
+  const handleIncreaseQty = (id: string) => {
+    dispatch(increaseQuantityProduct(id))
+  }
+
+  const handleDeletePro = (id: string) => {
+    Alert.alert(
+      "Xác nhận",
+      "Bạn có chắc chắn muốn xoá sản phẩm này?",
+      [
+        {
+          text: "Huỷ",
+          onPress: () => console.log("Huỷ"),
+          style: "cancel",
+        },
+        {
+          text: "Xoá",
+          onPress: () => dispatch(removeProduct(id)),
+          style: "destructive",
+        },
+      ],
+      {cancelable: true}
+    )
+  }
+
+  const handlePayment = async () => {
+    router.push("/order")
+  }
+
   return (
-    <View style={styles.container}>
-      <Text style={{ fontSize: 24, fontWeight: "700" }}>Giỏ hàng</Text>
-      <ScrollView style={{ width: "100%", gap: 10, paddingHorizontal: 10 }}>
-        {[1, 2, 3, 4].map((item, index) => (
-          <Animated.View
-            entering={FadeInDown.delay(300 * (index + 1)).duration(
-              500 * (index + 1)
-            )}
-            style={{
-              width: "100%",
-              borderColor: "#dfdfdf",
-              borderWidth: 2,
-              flexDirection: "row",
-              padding: 10,
-              borderRadius: 10,
-              marginVertical: 5,
-              alignItems: "flex-start",
-              gap: 10,
-            }}
-          >
-            <Image
-              source={{
-                uri: "https://anphat.com.vn/media/product/50031_laptop_asus_tuf_gaming_a15_fa506ncr_hn047w___2_.jpg",
-              }}
-              style={{ width: 100, height: 100, borderRadius: 10 }}
-            />
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text
+    <>
+      <Text style={{fontSize: 24, fontWeight: "700", padding: 10, backgroundColor: "white", textAlign: "center"}}>Giỏ hàng</Text>
+      <View style={styles.container}>
+        {productCart.length > 0 ? (
+          <ScrollView style={{width: "100%", gap: 10, paddingHorizontal: 10}}>
+            {productCart.map((item: any, index: number) => (
+              <Animated.View
+                entering={FadeInDown.delay(300 * (index + 1)).duration(500 * (index + 1))}
                 style={{
-                  fontSize: 16,
-                  fontWeight: "500",
-                  color: Colors.gray,
-                }}
-                numberOfLines={2}
-                ellipsizeMode="tail"
-              >
-                Laptop ASUS TUF Gaming A15 FA506NCR-HN047W
-              </Text>
-
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: "500",
-                  color: Colors.gray,
-                }}
-              >
-                20.000.000đ
-              </Text>
-
-              <View
-                style={{
+                  width: "100%",
+                  borderColor: "#dfdfdf",
+                  borderWidth: 2,
                   flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  padding: 10,
+                  borderRadius: 10,
+                  marginVertical: 5,
+                  alignItems: "flex-start",
+                  gap: 10,
                 }}
               >
-                <Ionicons name="trash-outline" size={20} color={"red"} />
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 10,
-                    alignItems: "center",
-                  }}
-                >
-                  <TouchableOpacity
+                <Image
+                  source={{uri: item.image}}
+                  resizeMode="contain"
+                  style={{width: 100, height: 100, borderRadius: 10, backgroundColor: "white"}}
+                />
+                <View style={{flex: 1, gap: 2}}>
+                  <Text
                     style={{
-                      width: 30,
-                      height: 30,
-                      borderWidth: 1,
-                      borderRadius: 5,
-                      borderColor: "#d8d8d8",
-                      justifyContent: "center",
+                      fontSize: 16,
+                      fontWeight: "500",
+                      color: Colors.gray,
+                    }}
+                    numberOfLines={2}
+                    ellipsizeMode="tail"
+                  >
+                    {item.name}
+                  </Text>
+
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "500",
+                      color: Colors.gray,
+                    }}
+                  >
+                    {item.price.toLocaleString("vi-VN")}đ
+                  </Text>
+
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
                       alignItems: "center",
                     }}
                   >
-                    <Ionicons
-                      name="remove-outline"
-                      size={18}
-                      color={"#d8d8d8"}
-                    />
-                  </TouchableOpacity>
-                  <Text style={{ fontSize: 14, color: Colors.gray }}>5</Text>
-                  <TouchableOpacity
-                    style={{
-                      width: 30,
-                      height: 30,
-                      borderWidth: 1,
-                      borderRadius: 5,
-                      borderColor: "#d8d8d8",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Ionicons name="add-outline" size={18} color={"#d8d8d8"} />
-                  </TouchableOpacity>
+                    <Ionicons name="trash-outline" size={20} color={"red"} onPress={() => handleDeletePro(item.id)} />
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        gap: 10,
+                        alignItems: "center",
+                      }}
+                    >
+                      <TouchableOpacity
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderWidth: 1,
+                          borderRadius: 5,
+                          borderColor: "#d8d8d8",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                        onPress={() => handleDecreaseQty(item.id)}
+                      >
+                        <Ionicons name="remove-outline" size={18} color={"#d8d8d8"} />
+                      </TouchableOpacity>
+                      <Text style={{fontSize: 14, color: Colors.gray}}>{item.quantity}</Text>
+                      <TouchableOpacity
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderWidth: 1,
+                          borderRadius: 5,
+                          borderColor: "#d8d8d8",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                        onPress={() => handleIncreaseQty(item.id)}
+                      >
+                        <Ionicons name="add-outline" size={18} color={"#d8d8d8"} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
-              </View>
-            </View>
-          </Animated.View>
-        ))}
-      </ScrollView>
+              </Animated.View>
+            ))}
+          </ScrollView>
+        ) : (
+          <BoxEmpty width={350} height={350} />
+        )}
 
-      <View
-        style={{
-          width: "100%",
-          flexDirection: "row",
-          backgroundColor: "rgb(228, 228, 228)",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingHorizontal: 10,
-          paddingVertical: 10,
-        }}
-      >
-        <Text style={{ fontSize: 16, color: Colors.black, fontWeight: "500" }}>
-          Tổng: 40,000,000đ
-        </Text>
-
-        <TouchableOpacity
+        <View
           style={{
-            backgroundColor: Colors.primary,
-            paddingVertical: 5,
-            paddingHorizontal: 20,
+            width: "100%",
+            flexDirection: "row",
+            backgroundColor: "rgb(228, 228, 228)",
             alignItems: "center",
-            borderRadius: 5,
+            justifyContent: "space-between",
+            paddingHorizontal: 10,
+            paddingVertical: 10,
+            display: total > 0 ? "flex" : "none",
           }}
         >
-          <Text
-            style={{
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: "600",
-            }}
-          >
-            Thanh toán
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-};
+          <Text style={{fontSize: 16, color: Colors.black, fontWeight: "500"}}>Tổng: {total.toLocaleString("vi-VN")}đ</Text>
 
-export default CartScreen;
+          <TouchableOpacity
+            style={{
+              backgroundColor: Colors.primary,
+              paddingVertical: 5,
+              paddingHorizontal: 20,
+              alignItems: "center",
+              borderRadius: 5,
+            }}
+            onPress={() => handlePayment()}
+          >
+            <Text
+              style={{
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: "600",
+              }}
+            >
+              Thanh toán
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </>
+  )
+}
+
+export default CartScreen
 
 const styles = StyleSheet.create({
   container: {
@@ -159,4 +204,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-});
+})

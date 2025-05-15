@@ -1,26 +1,54 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React from "react";
-import { Link, router, Stack } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { Colors } from "@/constants/Colors";
-import InputField from "@/components/InputField";
-
-type Props = {};
+import {StyleSheet, Text, TouchableOpacity, View} from "react-native"
+import React, {useState} from "react"
+import {Link, router, Stack} from "expo-router"
+import {Colors} from "@/constants/Colors"
+import InputField from "@/components/InputField"
+import axios from "axios"
+import {useDispatch} from "react-redux"
+import {addToken, addUser} from "@/Reducer/auth"
+import ModelAlert from "@/components/ModalAlert"
+import * as SecureStore from "expo-secure-store"
+type Props = {}
 
 const SignInScreen = (props: Props) => {
+  const [modalVisible, setModalVisible] = useState<boolean>(false)
+  const [modalMsg, setModalMsg] = useState<string>("")
+  const dispatch = useDispatch()
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  })
+
+  const handleChange = (field: string, value: string) => {
+    setForm((prev) => ({...prev, [field]: value}))
+  }
+
+  const closeModel = () => {
+    setModalVisible(!modalVisible)
+  }
+
+  const handleSignIn = async () => {
+    try {
+      const data = await axios.post("http://localhost:8080/api/auth/login", form) 
+      setModalMsg("Đăng nhập thành công")
+      setModalVisible(true)
+
+      router.dismissAll()
+      router.push("/(tabs)/home")
+
+      dispatch(addToken(data.data.token))
+      dispatch(addUser(data.data.user))
+
+      await SecureStore.setItemAsync("accessToken", data.data.token)
+    } catch (error) {
+      console.log(error)
+      setModalMsg("Đăng nhập thất bại")
+      setModalVisible(true)
+    }
+  }
+
   return (
     <>
-      {/* <Stack.Screen
-        options={{
-          headerTitle: "Đăng kí",
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="close" size={24} color={Colors.black} />
-            </TouchableOpacity>
-          ),
-        }}
-      /> */}
-
       <View style={styles.container}>
         <Text style={styles.title}>Đăng nhập tài khoản</Text>
         <InputField
@@ -28,17 +56,18 @@ const SignInScreen = (props: Props) => {
           placeholderTextColor={Colors.gray}
           autoCapitalize="none"
           keyboardType="email-address"
+          value={form.email}
+          onChangeText={(value: string) => handleChange("email", value)}
         />
         <InputField
           placeholder="Mật khẩu"
           placeholderTextColor={Colors.gray}
           secureTextEntry={true}
+          value={form.password}
+          onChangeText={(value: string) => handleChange("password", value)}
         />
 
-        <TouchableOpacity style={styles.btn} onPress={()=>{
-          router.dismissAll();
-          router.push('/(tabs)')
-        }}>
+        <TouchableOpacity style={styles.btn} onPress={handleSignIn}>
           <Text style={styles.btnTxt}>Đăng nhập</Text>
         </TouchableOpacity>
 
@@ -52,12 +81,13 @@ const SignInScreen = (props: Props) => {
         </Text>
 
         <View style={styles.divider} />
+        <ModelAlert msg={modalMsg} modalVisible={modalVisible} closeModel={closeModel} />
       </View>
     </>
-  );
-};
+  )
+}
 
-export default SignInScreen;
+export default SignInScreen
 
 const styles = StyleSheet.create({
   container: {
@@ -103,4 +133,4 @@ const styles = StyleSheet.create({
     width: "30%",
     marginBottom: 30,
   },
-});
+})

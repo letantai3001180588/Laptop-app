@@ -1,23 +1,32 @@
-import {
-  Image,
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  FlatList,
-  Dimensions,
-} from "react-native";
+import {Image, StyleSheet, View, Text, ScrollView, FlatList, Dimensions, Button} from "react-native"
 
-import { Colors } from "@/constants/Colors";
-import { Ionicons } from "@expo/vector-icons";
-import { Link, Stack } from "expo-router";
-import Animated, { FadeInDown, FadeInRight } from "react-native-reanimated";
-import { categories, products } from "@/constants/Db";
+import {Colors} from "@/constants/Colors"
+import {Ionicons} from "@expo/vector-icons"
+import {Link, Stack} from "expo-router"
+import Animated, {FadeInDown, FadeInRight} from "react-native-reanimated"
+import {categories, IProduct} from "@/constants/Db"
+import {URL} from "@env"
+import axios from "axios"
+import {useEffect, useState} from "react"
 
 export default function HomeScreen() {
+  const [products, setProducts] = useState<IProduct[]>([])
+  const handleGetProduct = async () => {
+    try {
+      const data = await axios.get(URL + "/api/product")
+      setProducts(data.data.product)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    handleGetProduct()
+  }, [])
+
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{headerShown: false}} />
 
       <View
         style={{
@@ -30,15 +39,7 @@ export default function HomeScreen() {
           gap: 10,
         }}
       >
-        {/* <Image
-          source={require("@/assets/images/logo.png")}
-          style={{ width: 55, height: 55 }}
-        /> */}
-        <Text
-          style={{ fontSize: 30, color: "rgb(238, 77, 45)", fontWeight: "700" }}
-        >
-          LS
-        </Text>
+        <Image source={require("@/assets/images/logo-laptop.png")} style={{width: 35, height: 35}} resizeMode="cover" />
         <View
           style={{
             flex: 1,
@@ -62,7 +63,7 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <ScrollView contentContainerStyle={{flexGrow: 1}}>
         <View
           style={{
             flexDirection: "row",
@@ -75,12 +76,12 @@ export default function HomeScreen() {
             style={{
               fontSize: 18,
               fontWeight: "700",
-              color: "rgb(238, 77, 45)",
+              color: Colors.primary,
             }}
           >
             Hãng nổi tiếng
           </Text>
-          <Text style={{ fontSize: 12, color: Colors.lightGray }}>Tất cả</Text>
+          <Text style={{fontSize: 12, color: Colors.lightGray}}>Tất cả</Text>
         </View>
 
         <FlatList
@@ -88,7 +89,7 @@ export default function HomeScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item, index }) => (
+          renderItem={({item, index}) => (
             <Animated.View
               entering={FadeInRight.delay(300).duration(500)}
               style={{
@@ -100,17 +101,14 @@ export default function HomeScreen() {
               }}
               key={index}
             >
-              <Image
-                source={{ uri: item.image }}
-                style={{ minWidth: 100, minHeight: 30, resizeMode: "contain" }}
-              />
+              <Image source={{uri: item.image}} style={{minWidth: 100, minHeight: 30, resizeMode: "contain"}} />
             </Animated.View>
           )}
-          contentContainerStyle={{
-            marginLeft: 20,
-            paddingRight: 20,
-            marginBottom: 20,
-          }}
+          // contentContainerStyle={{
+          //   marginLeft: 20,
+          //   paddingRight: 20,
+          //   marginBottom: 20,
+          // }}
         />
 
         <View
@@ -130,16 +128,22 @@ export default function HomeScreen() {
           >
             Flash Sale
           </Text>
-          <Text style={{ fontSize: 12, color: Colors.lightGray }}>Tất cả</Text>
+          <Text style={{fontSize: 12, color: Colors.lightGray}}>Tất cả</Text>
         </View>
 
         <FlatList
-          data={products}
+          data={products.filter((item) => item.discount > 0)}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => (
-            <Link href={"/productDetail"} asChild>
+          renderItem={({item, index}: any) => (
+            <Link
+              href={{
+                pathname: "/ProductDetail/[id]",
+                params: {id: item._id},
+              }}
+              asChild
+            >
               <Animated.View
                 entering={FadeInRight.delay(300).duration(700)}
                 style={{
@@ -149,17 +153,14 @@ export default function HomeScreen() {
                   padding: 5,
                   borderRadius: 10,
                   shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
+                  shadowOffset: {width: 0, height: 2},
                   shadowOpacity: 0.8,
                   shadowRadius: 5,
                   elevation: 5,
                 }}
                 key={index}
               >
-                <Image
-                  source={{ uri: item.image }}
-                  style={{ width: "100%", height: 150, borderRadius: 8 }}
-                />
+                <Image source={{uri: item.image}} resizeMode="contain" style={{width: "100%", height: 150, borderRadius: 8}} />
                 <Text
                   style={{
                     width: "100%",
@@ -186,7 +187,7 @@ export default function HomeScreen() {
                       fontWeight: "600",
                     }}
                   >
-                    đ{item.price}.000
+                    {item.price.toLocaleString("vi-VN")} đ
                   </Text>
 
                   <Text
@@ -197,10 +198,10 @@ export default function HomeScreen() {
                       color: "rgb(238, 77, 45)",
                       fontWeight: "600",
                       borderRadius: 5,
-                      paddingVertical: 2.5,
+                      padding: 2.5,
                     }}
                   >
-                    -50%
+                    -{item.discount}%
                   </Text>
                 </View>
 
@@ -270,7 +271,7 @@ export default function HomeScreen() {
           >
             Dành cho bạn
           </Text>
-          <Text style={{ fontSize: 12, color: Colors.lightGray }}>Tất cả</Text>
+          <Text style={{fontSize: 12, color: Colors.lightGray}}>Tất cả</Text>
         </View>
 
         <FlatList
@@ -281,12 +282,16 @@ export default function HomeScreen() {
             justifyContent: "space-between",
             marginBottom: 20,
           }}
-          renderItem={({ item, index }) => (
-            <Link href={"/productDetail"} asChild>
+          renderItem={({item, index}: any) => (
+            <Link
+              href={{
+                pathname: "/ProductDetail/[id]",
+                params: {id: item._id},
+              }}
+              asChild
+            >
               <Animated.View
-                entering={FadeInDown.delay(300 * (index + 1)).duration(
-                  500 * (index + 1)
-                )}
+                entering={FadeInDown.delay(300 * (index + 1)).duration(500 * (index + 1))}
                 style={{
                   width: Dimensions.get("window").width / 2 - 20,
                   // height: 300,
@@ -295,17 +300,14 @@ export default function HomeScreen() {
                   padding: 5,
                   borderRadius: 10,
                   shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
+                  shadowOffset: {width: 0, height: 2},
                   shadowOpacity: 0.8,
                   shadowRadius: 5,
                   elevation: 5,
                 }}
                 key={index}
               >
-                <Image
-                  source={{ uri: item.image }}
-                  style={{ width: "100%", height: 150, borderRadius: 8 }}
-                />
+                <Image source={{uri: item.image}} resizeMode="contain" style={{width: "100%", height: 150, borderRadius: 8}} />
                 <Text
                   style={{
                     width: "100%",
@@ -332,7 +334,7 @@ export default function HomeScreen() {
                       fontWeight: "600",
                     }}
                   >
-                    đ{item.price}.000
+                    {item.price.toLocaleString("vi-VN")}đ
                   </Text>
 
                   <Text
@@ -343,10 +345,11 @@ export default function HomeScreen() {
                       color: "rgb(238, 77, 45)",
                       fontWeight: "600",
                       borderRadius: 5,
-                      paddingVertical: 2.5,
+                      padding: 2.5,
+                      display: item.discount > 0 ? "flex" : "none",
                     }}
                   >
-                    -50%
+                    -{item.discount}%
                   </Text>
                 </View>
 
@@ -395,7 +398,7 @@ export default function HomeScreen() {
         />
       </ScrollView>
     </>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -469,7 +472,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     marginHorizontal: 5,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.8,
     shadowRadius: 5,
     elevation: 5,
@@ -493,4 +496,4 @@ const styles = StyleSheet.create({
     flex: 0.5,
     marginRight: 30,
   },
-});
+})

@@ -48,7 +48,7 @@ const WelcomeScreen = (props: Props) => {
                 style={styles.title}
                 entering={FadeInRight.delay(300).duration(300).springify()}
               >
-                LaptopStore
+                Laptop Store
               </Animated.Text>
               <Animated.Text
                 style={styles.description}

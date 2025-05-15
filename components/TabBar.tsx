@@ -5,7 +5,7 @@ import {
   BottomTabBarProps,
   createBottomTabNavigator,
 } from "@react-navigation/bottom-tabs";
-import HomeScreen from "@/app/(tabs)";
+import HomeScreen from "@/app/(tabs)/home";
 import ProfileScreen from "@/app/(tabs)/profile";
 import TabBarButton from "./TabBarButton";
 import { Colors } from "@/constants/Colors";
@@ -15,14 +15,16 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 export default function TabBar({
   state,
   descriptors,
   navigation,
 }: BottomTabBarProps) {
-  const { colors } = useTheme();
-  const { buildHref } = useLinkBuilder();
+  // const { colors } = useTheme();
+  // const { buildHref } = useLinkBuilder();
+  const cartCount = useSelector((state: any) => state.cart.products.length);
 
   const [dimensions, setDimensions] = useState({ height: 20, width: 100 });
   const buttonWidth = dimensions.width / state.routes.length;
@@ -98,6 +100,9 @@ export default function TabBar({
             isFocused={isFocused}
             label={label}
             routeName={route.name}
+            badge={
+              route.name === "cart" && cartCount > 0 ? cartCount : undefined
+            }
           />
         );
       })}
