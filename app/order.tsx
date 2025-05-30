@@ -35,7 +35,7 @@ const OrderScreen = (props: Props) => {
   const handlePayment = async () => {
     try {
       const products = productCart.map((item: any) => ({quantity: item.quantity, productId: item._id}))
-      const data = await axios.post(URL + "/api/payment", {
+      const data = await axios.post("http://localhost:8080/api/payment", {
         amount: total,
         locale: "vn",
         methodPay: selectedPay,
@@ -112,12 +112,7 @@ const OrderScreen = (props: Props) => {
                     gap: 10,
                   }}
                 >
-                  <Image
-                    source={{
-                      uri: item.image,
-                    }}
-                    style={{width: 80, height: 80, borderRadius: 10}}
-                  />
+                  <Image resizeMode="contain" source={{uri: item.image}} style={{width: 80, height: 80, borderRadius: 10}} />
                   <View style={{flex: 1}}>
                     <Text
                       style={{
@@ -168,7 +163,7 @@ const OrderScreen = (props: Props) => {
             <Text style={{fontSize: 18, color: Colors.black, fontWeight: "500", paddingBlock: 10}}>Tóm tắt yêu cầu</Text>
             <View style={{flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 5}}>
               <Text style={{fontSize: 16}}>Tổng phụ</Text>
-              <Text style={{fontSize: 16}}>{total.toLocaleString("vi-VN")}đ</Text>
+              <Text style={{fontSize: 16}}>{total?.toLocaleString("vi-VN")}đ</Text>
             </View>
             <View style={{flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 5, borderBottomWidth: 1}}>
               <Text style={{fontSize: 16}}>Phí vận chuyển</Text>
@@ -176,7 +171,7 @@ const OrderScreen = (props: Props) => {
             </View>
             <View style={{flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 5}}>
               <Text style={{fontSize: 16}}>Tổng thanh toán</Text>
-              <Text style={{fontSize: 16}}>{total.toLocaleString("vi-VN")}đ</Text>
+              <Text style={{fontSize: 16}}>{total?.toLocaleString("vi-VN")}đ</Text>
             </View>
           </View>
 
@@ -214,7 +209,7 @@ const OrderScreen = (props: Props) => {
           paddingVertical: 10,
         }}
       >
-        <Text style={{fontSize: 16, color: Colors.black, fontWeight: "500"}}>Tổng thanh toán: {total.toLocaleString("vi-VN")}đ</Text>
+        <Text style={{fontSize: 16, color: Colors.black, fontWeight: "500"}}>Tổng thanh toán: {total?.toLocaleString("vi-VN")}đ</Text>
 
         <TouchableOpacity
           style={{

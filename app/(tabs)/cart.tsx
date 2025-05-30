@@ -1,14 +1,12 @@
-import {Alert, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native"
-import React, {useState} from "react"
+import {Image, StyleSheet, Text, TouchableOpacity, View} from "react-native"
+import React from "react"
 import {ScrollView} from "react-native-gesture-handler"
 import Animated, {FadeInDown} from "react-native-reanimated"
 import {Ionicons} from "@expo/vector-icons"
 import {Colors} from "@/constants/Colors"
 import {useDispatch, useSelector} from "react-redux"
 import {decreaseQuantityProduct, increaseQuantityProduct, removeProduct} from "@/Reducer/cart"
-import axios from "axios"
 import {router} from "expo-router"
-import {addPayment} from "@/Reducer/payment"
 import {BoxEmpty} from "@/assets/icons/boxEmpty"
 
 type Props = {}
@@ -29,23 +27,7 @@ const CartScreen = (props: Props) => {
   }
 
   const handleDeletePro = (id: string) => {
-    Alert.alert(
-      "Xác nhận",
-      "Bạn có chắc chắn muốn xoá sản phẩm này?",
-      [
-        {
-          text: "Huỷ",
-          onPress: () => console.log("Huỷ"),
-          style: "cancel",
-        },
-        {
-          text: "Xoá",
-          onPress: () => dispatch(removeProduct(id)),
-          style: "destructive",
-        },
-      ],
-      {cancelable: true}
-    )
+    dispatch(removeProduct(id))
   }
 
   const handlePayment = async () => {
@@ -108,7 +90,7 @@ const CartScreen = (props: Props) => {
                       alignItems: "center",
                     }}
                   >
-                    <Ionicons name="trash-outline" size={20} color={"red"} onPress={() => handleDeletePro(item.id)} />
+                    <Ionicons name="trash-outline" size={20} color={"red"} onPress={() => handleDeletePro(item._id)} />
                     <View
                       style={{
                         flexDirection: "row",
@@ -126,7 +108,7 @@ const CartScreen = (props: Props) => {
                           justifyContent: "center",
                           alignItems: "center",
                         }}
-                        onPress={() => handleDecreaseQty(item.id)}
+                        onPress={() => handleDecreaseQty(item._id)}
                       >
                         <Ionicons name="remove-outline" size={18} color={"#d8d8d8"} />
                       </TouchableOpacity>
@@ -141,7 +123,7 @@ const CartScreen = (props: Props) => {
                           justifyContent: "center",
                           alignItems: "center",
                         }}
-                        onPress={() => handleIncreaseQty(item.id)}
+                        onPress={() => handleIncreaseQty(item._id)}
                       >
                         <Ionicons name="add-outline" size={18} color={"#d8d8d8"} />
                       </TouchableOpacity>
@@ -167,7 +149,7 @@ const CartScreen = (props: Props) => {
             display: total > 0 ? "flex" : "none",
           }}
         >
-          <Text style={{fontSize: 16, color: Colors.black, fontWeight: "500"}}>Tổng: {total.toLocaleString("vi-VN")}đ</Text>
+          <Text style={{fontSize: 16, color: Colors.black, fontWeight: "500"}}>Tổng: {total?.toLocaleString("vi-VN")}đ</Text>
 
           <TouchableOpacity
             style={{

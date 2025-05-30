@@ -1,4 +1,4 @@
-import {Image, StyleSheet, View, Text, ScrollView, FlatList, Dimensions, Button} from "react-native"
+import {Image, StyleSheet, View, Text, ScrollView, FlatList, Dimensions, Button, TouchableOpacity} from "react-native"
 
 import {Colors} from "@/constants/Colors"
 import {Ionicons} from "@expo/vector-icons"
@@ -8,13 +8,38 @@ import {categories, IProduct} from "@/constants/Db"
 import {URL} from "@env"
 import axios from "axios"
 import {useEffect, useState} from "react"
+import {TextInput} from "react-native"
 
 export default function HomeScreen() {
   const [products, setProducts] = useState<IProduct[]>([])
+  const [brand, setBrand] = useState<string>("")
+  const [search, setSearch] = useState<string>("")
+  const [loading, setLoading] = useState<boolean>(false)
+
   const handleGetProduct = async () => {
     try {
-      const data = await axios.get(URL + "/api/product")
+      const data = await axios.get("http://localhost:8080/api/product")
       setProducts(data.data.product)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const handleGetBrand = async () => {
+    try {
+      const data = await axios.get("http://localhost:8080/api/product?name=" + brand)
+      setProducts(data.data.product)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const handleSearchProduct = async () => {
+    try {
+      setLoading(true)
+      const data = await axios.get("http://localhost:8080/api/product?name=" + search)
+      setProducts(data.data.product)
+      setLoading(false)
     } catch (error) {
       console.log(error)
     }
@@ -24,93 +49,130 @@ export default function HomeScreen() {
     handleGetProduct()
   }, [])
 
-  return (
-    <>
-      <Stack.Screen options={{headerShown: false}} />
+  useEffect(() => {
+    if (brand !== "") handleGetBrand()
+    else handleGetProduct()
+  }, [brand])
+
+  const Nav = () => (
+    <View
+      style={{
+        flexDirection: "row",
+        paddingHorizontal: 10,
+        paddingVertical: 10,
+        display: "flex",
+        justifyContent: "space-between",
+        backgroundColor: Colors.white,
+        gap: 10,
+      }}
+    >
+      <TouchableOpacity style={{alignItems: "center", justifyContent: "center"}} onPress={handleGetProduct}>
+        <Image source={require("@/assets/images/logo-laptop.png")} style={{width: 35, height: 35}} resizeMode="cover" />
+      </TouchableOpacity>
 
       <View
         style={{
+          flex: 1,
+          width: "100%",
+          position: "relative",
           flexDirection: "row",
-          paddingHorizontal: 10,
-          paddingVertical: 10,
-          display: "flex",
-          justifyContent: "space-between",
-          backgroundColor: Colors.white,
-          gap: 10,
         }}
       >
-        <Image source={require("@/assets/images/logo-laptop.png")} style={{width: 35, height: 35}} resizeMode="cover" />
-        <View
+        <TextInput
+          value={search}
+          onChangeText={setSearch}
           style={{
             flex: 1,
-            flexDirection: "row",
-            paddingHorizontal: 10,
-            backgroundColor: "#f2f2f2",
+            borderWidth: 1,
+            borderColor: "#ccc",
+            padding: 10,
             borderRadius: 5,
-            alignItems: "center",
-            justifyContent: "space-between",
           }}
-        >
-          <Text
-            style={{
-              fontSize: 16,
-              color: Colors.gray,
-            }}
-          >
-            Tìm kiếm ...
-          </Text>
-          <Ionicons name="search-outline" size={20} color={Colors.gray} />
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={{flexGrow: 1}}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            paddingHorizontal: 10,
-            paddingVertical: 10,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "700",
-              color: Colors.primary,
-            }}
-          >
-            Hãng nổi tiếng
-          </Text>
-          <Text style={{fontSize: 12, color: Colors.lightGray}}>Tất cả</Text>
-        </View>
-
-        <FlatList
-          data={categories}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({item, index}) => (
-            <Animated.View
-              entering={FadeInRight.delay(300).duration(500)}
-              style={{
-                marginHorizontal: 5,
-                padding: 5,
-                borderRadius: 10,
-                alignItems: "center",
-                backgroundColor: Colors.white,
-              }}
-              key={index}
-            >
-              <Image source={{uri: item.image}} style={{minWidth: 100, minHeight: 30, resizeMode: "contain"}} />
-            </Animated.View>
-          )}
-          // contentContainerStyle={{
-          //   marginLeft: 20,
-          //   paddingRight: 20,
-          //   marginBottom: 20,
-          // }}
+          placeholder="Tìm kiếm ..."
         />
 
+        <TouchableOpacity
+          style={{
+            borderRadius: 5,
+          }}
+          onPress={handleSearchProduct}
+          disabled={loading}
+        >
+          <Ionicons
+            name="search-outline"
+            size={20}
+            color="#888"
+            style={{
+              position: "absolute",
+              right: 10,
+              top: 10,
+            }}
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
+  )
+
+  const Brand = () => (
+    <>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          paddingHorizontal: 10,
+          paddingVertical: 10,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: "700",
+            color: Colors.primary,
+          }}
+        >
+          Hãng nổi tiếng
+        </Text>
+        <Text style={{fontSize: 12, color: Colors.lightGray}}>Tất cả</Text>
+      </View>
+
+      <FlatList
+        data={categories}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(item) => item.id.toString()}
+        style={{maxHeight: 50}}
+        renderItem={({item, index}) => (
+          <Animated.View
+            entering={FadeInRight.delay(300).duration(500)}
+            style={{
+              height: 40,
+              marginHorizontal: 5,
+              padding: 5,
+              borderRadius: 10,
+              alignItems: "center",
+              backgroundColor: Colors.white,
+              borderColor: Colors.primary,
+              borderWidth: brand === item.txt ? 1 : 0,
+            }}
+            key={index}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                brand === item.txt ? setBrand("") : setBrand(item.txt)
+              }}
+            >
+              <Image source={{uri: item.image}} style={{minWidth: 100, minHeight: 30, resizeMode: "contain"}} />
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+      />
+    </>
+  )
+
+  const FlashSale = () => {
+    const productsFlashSale = products.filter((item) => item.discount > 0)
+    return productsFlashSale.length > 0 ? (
+      <>
         <View
           style={{
             flexDirection: "row",
@@ -132,10 +194,10 @@ export default function HomeScreen() {
         </View>
 
         <FlatList
-          data={products.filter((item) => item.discount > 0)}
+          data={productsFlashSale}
           horizontal
           showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item: any) => item._id}
           renderItem={({item, index}: any) => (
             <Link
               href={{
@@ -187,7 +249,7 @@ export default function HomeScreen() {
                       fontWeight: "600",
                     }}
                   >
-                    {item.price.toLocaleString("vi-VN")} đ
+                    {item?.price?.toLocaleString("vi-VN")} đ
                   </Text>
 
                   <Text
@@ -219,7 +281,7 @@ export default function HomeScreen() {
                     }}
                   >
                     <Ionicons name="star" color={"#D4AF37"} size={12} />
-                    &nbsp; 4.7
+                    &nbsp; {item.star}
                   </Text>
                   <Text
                     style={{
@@ -253,149 +315,168 @@ export default function HomeScreen() {
             marginBottom: 20,
           }}
         />
+      </>
+    ) : (
+      <></>
+    )
+  }
 
-        <View
+  const ProductForYou = () => (
+    <>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          paddingHorizontal: 10,
+          paddingVertical: 10,
+        }}
+      >
+        <Text
           style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            paddingHorizontal: 10,
-            paddingVertical: 10,
+            fontSize: 18,
+            fontWeight: "700",
+            color: "rgb(238, 77, 45)",
           }}
         >
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "700",
-              color: "rgb(238, 77, 45)",
-            }}
-          >
-            Dành cho bạn
-          </Text>
-          <Text style={{fontSize: 12, color: Colors.lightGray}}>Tất cả</Text>
-        </View>
+          Dành cho bạn
+        </Text>
+        <Text style={{fontSize: 12, color: Colors.lightGray}}>Tất cả</Text>
+      </View>
 
-        <FlatList
-          data={products}
-          numColumns={2}
-          keyExtractor={(item) => item.id}
-          columnWrapperStyle={{
-            justifyContent: "space-between",
-            marginBottom: 20,
-          }}
-          renderItem={({item, index}: any) => (
-            <Link
-              href={{
-                pathname: "/ProductDetail/[id]",
-                params: {id: item._id},
+      <FlatList
+        data={products}
+        numColumns={2}
+        keyExtractor={(item: any) => item._id}
+        columnWrapperStyle={{
+          justifyContent: "space-between",
+          marginBottom: 20,
+        }}
+        renderItem={({item, index}: any) => (
+          <Link
+            href={{
+              pathname: "/ProductDetail/[id]",
+              params: {id: item._id},
+            }}
+            asChild
+          >
+            <Animated.View
+              entering={FadeInDown.delay(300 * (index + 1)).duration(500 * (index + 1))}
+              style={{
+                width: Dimensions.get("window").width / 2 - 20,
+                marginHorizontal: 10,
+                backgroundColor: Colors.white,
+                padding: 5,
+                borderRadius: 10,
+                shadowColor: "#000",
+                shadowOffset: {width: 0, height: 2},
+                shadowOpacity: 0.8,
+                shadowRadius: 5,
+                elevation: 5,
               }}
-              asChild
+              key={index}
             >
-              <Animated.View
-                entering={FadeInDown.delay(300 * (index + 1)).duration(500 * (index + 1))}
+              <Image source={{uri: item.image}} resizeMode="contain" style={{width: "100%", height: 150, borderRadius: 8}} />
+              <Text
                 style={{
-                  width: Dimensions.get("window").width / 2 - 20,
-                  // height: 300,
-                  marginHorizontal: 10,
-                  backgroundColor: Colors.white,
-                  padding: 5,
-                  borderRadius: 10,
-                  shadowColor: "#000",
-                  shadowOffset: {width: 0, height: 2},
-                  shadowOpacity: 0.8,
-                  shadowRadius: 5,
-                  elevation: 5,
+                  width: "100%",
+                  fontSize: 16,
+                  marginTop: 5,
                 }}
-                key={index}
+                numberOfLines={2}
+                ellipsizeMode="tail"
               >
-                <Image source={{uri: item.image}} resizeMode="contain" style={{width: "100%", height: 150, borderRadius: 8}} />
+                {item.name}
+              </Text>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
                 <Text
                   style={{
-                    width: "100%",
-                    fontSize: 16,
+                    fontSize: 18,
+                    color: "rgb(238, 77, 45)",
                     marginTop: 5,
+                    fontWeight: "600",
                   }}
-                  numberOfLines={2}
-                  ellipsizeMode="tail"
                 >
-                  {item.name}
+                  {item?.price?.toLocaleString("vi-VN")}đ
                 </Text>
 
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 18,
-                      color: "rgb(238, 77, 45)",
-                      marginTop: 5,
-                      fontWeight: "600",
-                    }}
-                  >
-                    {item.price.toLocaleString("vi-VN")}đ
-                  </Text>
-
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      backgroundColor: "rgb(253, 224, 218)",
-                      marginTop: 5,
-                      color: "rgb(238, 77, 45)",
-                      fontWeight: "600",
-                      borderRadius: 5,
-                      padding: 2.5,
-                      display: item.discount > 0 ? "flex" : "none",
-                    }}
-                  >
-                    -{item.discount}%
-                  </Text>
-                </View>
-
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      marginTop: 5,
-                      color: Colors.lightGray,
-                    }}
-                  >
-                    <Ionicons name="star" color={"#D4AF37"} size={12} />
-                    &nbsp; 4.7
-                  </Text>
-                  <Text
-                    style={{
-                      // width: "100%",
-                      fontSize: 12,
-                      marginTop: 5,
-                      color: Colors.lightGray,
-                    }}
-                  >
-                    <Ionicons name="trending-up-outline" size={12} />
-                    &nbsp; Đã bán: 56
-                  </Text>
-                </View>
-
                 <Text
                   style={{
-                    width: "100%",
                     fontSize: 12,
+                    backgroundColor: "rgb(253, 224, 218)",
+                    marginTop: 5,
+                    color: "rgb(238, 77, 45)",
+                    fontWeight: "600",
+                    borderRadius: 5,
+                    padding: 2.5,
+                    display: item.discount > 0 ? "flex" : "none",
+                  }}
+                >
+                  -{item.discount}%
+                </Text>
+              </View>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    marginTop: 5,
                     color: Colors.lightGray,
                   }}
                 >
-                  <Ionicons name="location-outline" size={12} />
-                  &nbsp; Hồ Chí Minh
+                  <Ionicons name="star" color={"#D4AF37"} size={12} />
+                  &nbsp;{item.star}
                 </Text>
-              </Animated.View>
-            </Link>
-          )}
-        />
+                <Text
+                  style={{
+                    // width: "100%",
+                    fontSize: 12,
+                    marginTop: 5,
+                    color: Colors.lightGray,
+                  }}
+                >
+                  <Ionicons name="trending-up-outline" size={12} />
+                  &nbsp; Đã bán: 56
+                </Text>
+              </View>
+
+              <Text
+                style={{
+                  width: "100%",
+                  fontSize: 12,
+                  color: Colors.lightGray,
+                }}
+              >
+                <Ionicons name="location-outline" size={12} />
+                &nbsp; Hồ Chí Minh
+              </Text>
+            </Animated.View>
+          </Link>
+        )}
+      />
+    </>
+  )
+
+  return (
+    <>
+      <Stack.Screen options={{headerShown: false}} />
+
+      {Nav()}
+
+      <ScrollView contentContainerStyle={{flexGrow: 1}}>
+        {Brand()}
+        {FlashSale()}
+        {ProductForYou()}
       </ScrollView>
     </>
   )

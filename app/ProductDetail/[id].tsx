@@ -22,9 +22,8 @@ const ProductDetailScreen = (props: Props) => {
 
   const handleGetDetailProduct = async () => {
     try {
-      const data = await axios.get(URL + "/api/product/" + id)
+      const data = await axios.get("http://localhost:8080/api/product/" + id)
       setDetailProducts(data.data.product)
-      console.log(data)
     } catch (error) {
       console.log(error)
     }
@@ -47,6 +46,11 @@ const ProductDetailScreen = (props: Props) => {
     dispatch(addProduct({...detailProduct, quantity: 1}))
   }
 
+  const handleBuy = async () => {
+    dispatch(addProduct({...detailProduct, quantity: 1}))
+    router.push("/order")
+  }
+
   return (
     <>
       <Stack.Screen options={{headerShown: true, title: "Thông tin sản phẩm"}} />
@@ -64,7 +68,9 @@ const ProductDetailScreen = (props: Props) => {
         />
 
         <View style={styles.dotsContainer}>
-          {detailProduct?.banner?.map((item:any, index:number) => <View key={item._id} style={[styles.dot, currentIndex === index && styles.dotActive]} />)}
+          {detailProduct?.banner?.map((item: any, index: number) => (
+            <View key={item._id} style={[styles.dot, currentIndex === index && styles.dotActive]} />
+          ))}
         </View>
 
         <View style={styles.container}>
@@ -72,7 +78,7 @@ const ProductDetailScreen = (props: Props) => {
             <View style={styles.headingProductInfo}>
               <Text style={styles.txtHeadingProductInfo}>
                 <Ionicons name="star" color={"#D4AF37"} size={12} />
-                &nbsp; 4.7
+                &nbsp; {detailProduct.star}
               </Text>
               <Text style={styles.txtHeadingProductInfo}>
                 <Ionicons name="trending-up-outline" size={12} />
@@ -80,7 +86,9 @@ const ProductDetailScreen = (props: Props) => {
               </Text>
             </View>
 
-            <Text style={styles.productName}>{detailProduct?.name}</Text>
+            <Text numberOfLines={2} ellipsizeMode="tail" style={styles.productName}>
+              {detailProduct?.name}
+            </Text>
 
             <View style={styles.boxPrice}>
               <Text style={styles.price}>{detailProduct?.price?.toLocaleString("vi-VN")}đ &emsp;</Text>
@@ -109,12 +117,7 @@ const ProductDetailScreen = (props: Props) => {
           <Text style={{...styles.txtBtnAction, color: Colors.primary}}>Thêm giỏ hàng</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.btnPay}
-          onPress={() => {
-            router.back()
-          }}
-        >
+        <TouchableOpacity style={styles.btnPay} onPress={handleBuy}>
           <Text style={{...styles.txtBtnAction, color: "white"}}>Mua ngay</Text>
         </TouchableOpacity>
       </View>
@@ -191,6 +194,7 @@ const styles = StyleSheet.create({
     height: 5,
   },
   productInfo: {
+    width: "100%",
     backgroundColor: "white",
     padding: 5,
     borderRadius: 5,

@@ -19,7 +19,7 @@ const MyOrder = (props: Props) => {
 
   const handleGetDetailProduct = async () => {
     try {
-      const data = await axios.get(URL + "/api/order?phone=" + id)
+      const data = await axios.get("http://localhost:8080/api/order?phone=" + id)
       setOrders(data.data.data)
       console.log(data.data.data)
     } catch (error) {
